@@ -42,7 +42,7 @@ const {
 } = require("./controller/college");
 
 // Middleware
-const { checkAuth } = require("./middleware/authentication");
+const { checkAuth, authorizeRoles } = require("./middleware/authentication");
 
 app.use(express.json());
 app.use(cookieParser());
@@ -80,9 +80,9 @@ app.patch("/api/v1/review/:rid", checkAuth, editReview);
 // ----- PG Routes -----
 app.get("/api/v1/pg/all", getPgs);
 app.get("/api/v1/pg/pg/:pgid", getPgById);
-app.post("/api/v1/pg/new", checkAuth, createPg);
-app.delete("/api/v1/pg/delete/:pgid", checkAuth, deletePg);
-app.patch("/api/v1/pg/edit/:pgid", checkAuth, updatePg);
+app.post("/api/v1/pg/new", checkAuth, authorizeRoles("owner"), createPg);
+app.delete("/api/v1/pg/delete/:pgid", authorizeRoles("owner"), checkAuth, deletePg);
+app.patch("/api/v1/pg/edit/:pgid", authorizeRoles("owner"),checkAuth, updatePg);
 
 
 

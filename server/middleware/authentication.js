@@ -4,6 +4,18 @@ const jwt = require("jsonwebtoken");
 // when user account is created we create a token with this secret key so we verify it now
 const secret_key = "pingu";
 
+const authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You do not have access to this resource.",
+      });
+    }
+    next();
+  };
+};
+
 const checkAuth = async(req,res,next)=>{
     // get the token from the stored cookies
     const {token}  = req.cookies;
@@ -35,4 +47,4 @@ const checkAuth = async(req,res,next)=>{
     next();
 }
 
-module.exports = {checkAuth};
+module.exports = {checkAuth, authorizeRoles};
