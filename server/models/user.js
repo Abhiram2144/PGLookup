@@ -16,6 +16,12 @@ const userSchema = new mongoose.Schema({
     required: true,
     default: "student",
   },
+  oid: {
+    type: String,
+    required: function () {
+      return this.role === "owner";
+    },
+  },
   password: {
     type: String,
     required: true

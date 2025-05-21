@@ -1,43 +1,75 @@
 const User = require("../models/user.js");
 const bcrypt = require("bcrypt");
 const  sendCookie  = require("../utils/cookie.js");
+const sendEmail = require("../utils/sendMail"); // Create this utility
 
 
 const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, isOwner, oid } = req.body;
 
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email }).select("+password +oid");
 
-    if (!user)
-    {
-        return res.status(400).json({success: false, message: "Invalid Email or Password"});
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Invalid Email or Password" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!isMatch)
-      return res.status(400).json({success: false, message: "Invalid Email or Password"});
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: "Invalid Email or Password" });
+    }
+
+    // Owner validation
+    if (isOwner) {
+      if (user.role !== "owner") {
+        return res.status(403).json({ success: false, message: "Not registered as an owner" });
+      }
+
+      if (!oid || user.oid !== oid) {
+        return res.status(403).json({ success: false, message: "Invalid OID" });
+      }
+    }
 
     sendCookie(user, res, `Welcome back, ${user.username}`, 200);
+
   } catch (error) {
     next(error);
   }
 };
 
-const register = async (req, res,next) => {
+
+
+const generateOID = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+const register = async (req, res, next) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, role } = req.body;
 
     let user = await User.findOne({ email });
 
-    if (user){
-        return res.status(400).json({success: false, message: "User already exists"});
+    if (user) {
+      return res.status(400).json({ success: false, message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const oid = role === "owner" ? generateOID() : undefined;
+    const hashedOid = await bcrypt.hash(oid, 10);
+    user = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      role,
+      hashedOid,
+    });
 
-    user = await User.create({ username, email, password: hashedPassword });
+    if (role === "owner") {
+      await sendEmail({
+        to: email,
+        subject: "Your Owner ID (OID)",
+        text: `Welcome to PG Lookup! Your Owner ID (OID) is: ${oid}`,
+      });
+    }
 
     sendCookie(user, res, "Registered Successfully", 201);
   } catch (error) {

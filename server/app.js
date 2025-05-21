@@ -1,8 +1,10 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+// index.js or app.js
 
 // User Controllers
 const {
@@ -99,3 +101,4 @@ app.patch("/api/v1/college/edit/:collegeid", checkAuth, updateCollege);
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
+
