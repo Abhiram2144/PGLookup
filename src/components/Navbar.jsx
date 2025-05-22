@@ -8,7 +8,7 @@ const Navbar = () => {
       </Link>
       <div className="space-x-4">
         <Link
-          to="/pgs"
+          to="/pg-list"
           className="bg-white text-gray-800 px-4 py-2 rounded shadow hover:bg-gray-200 transition"
         >
           Look PGs
