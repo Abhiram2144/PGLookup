@@ -1,47 +1,134 @@
 import { useNavigate } from "react-router-dom";
 import useUser from "../components/useUser";
 import { useState } from "react";
+import Navbar from "../components/Navbar";
 
 const Login = () => {
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isOwner, setIsOwner] = useState(false);
+  const [oid, setOid] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const { login } = useUser();
   const navigate = useNavigate();
 
-  const handleDummyLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    login({ id: 1, name: username, role: "owner" }); // Just log in directly
-    navigate("/dashboard");
+    setError(null);
+    setLoading(true);
+
+    const payload = {
+      email: username.trim(),
+      password: password.trim(),
+    };
+
+    if (isOwner) {
+      payload.oid = oid.trim();
+    }
+
+    try {
+      const res = await fetch("http://localhost:8000/api/v1/user/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Login failed");
+        setLoading(false);
+        return;
+      }
+
+      login({
+        id: data.id,
+        name: data.name,
+        role: data.role,
+        token: data.token,
+      });
+
+      navigate("/dashboard");
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
+    <div >
+    <Navbar/>
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-6 rounded shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-semibold mb-4">Login / Signup</h2>
-        <form>
+        <h2 className="text-2xl font-semibold mb-4">Login</h2>
+        <form onSubmit={handleLogin}>
           <input
             type="email"
             placeholder="Email"
             className="w-full mb-3 p-2 border rounded"
-            onChange={(e) =>
-              setUsername(e.target.value)
-              }
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
           />
           <input
             type="password"
             placeholder="Password"
             className="w-full mb-3 p-2 border rounded"
-            onChange={(e) =>
-              setPassword(e.target.value)
-              }
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
           />
-          <button onClick={handleDummyLogin} className="w-full bg-blue-600 text-white py-2 rounded">
-            Submit
+          <div className="flex items-center mb-3">
+            <input
+              id="ownerCheck"
+              type="checkbox"
+              checked={isOwner}
+              onChange={(e) => setIsOwner(e.target.checked)}
+              className="mr-2"
+            />
+            <label htmlFor="ownerCheck" className="text-sm">
+              Are you an owner?
+            </label>
+          </div>
+          {isOwner && (
+            <input
+              type="text"
+              placeholder="Enter OID"
+              className="w-full mb-3 p-2 border rounded"
+              value={oid}
+              onChange={(e) => setOid(e.target.value)}
+              required
+            />
+          )}
+
+
+          {error && <p className="text-red-600 mb-2">{error}</p>}
+          <p className="mt-4 text-sm text-center pb-4">
+            Don't have an account?{" "}
+            <span
+              onClick={() => navigate("/signup")}
+              className="text-blue-600 hover:underline cursor-pointer"
+            >
+              Create one
+            </span>
+          </p>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-2 rounded text-white ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+              }`}
+          >
+            {loading ? "Logging in..." : "Submit"}
           </button>
         </form>
       </div>
+    </div>
     </div>
   );
 };

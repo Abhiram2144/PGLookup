@@ -1,6 +1,6 @@
 const User = require("../models/user.js");
 const bcrypt = require("bcrypt");
-const  sendCookie  = require("../utils/cookie.js");
+const sendCookie = require("../utils/cookie.js");
 const sendEmail = require("../utils/sendMail"); // Create this utility
 
 
@@ -8,7 +8,7 @@ const login = async (req, res, next) => {
   try {
     const { email, password, isOwner, oid } = req.body;
 
-    const user = await User.findOne({ email }).select("+password +oid");
+    const user = await User.findOne({ email }).select("+password +oid +role");
 
     if (!user) {
       return res.status(400).json({ success: false, message: "Invalid Email or Password" });
@@ -20,7 +20,7 @@ const login = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Invalid Email or Password" });
     }
 
-    // Owner validation
+    // Role validation
     if (isOwner) {
       if (user.role !== "owner") {
         return res.status(403).json({ success: false, message: "Not registered as an owner" });
@@ -28,6 +28,11 @@ const login = async (req, res, next) => {
 
       if (!oid || user.oid !== oid) {
         return res.status(403).json({ success: false, message: "Invalid OID" });
+      }
+
+    } else {
+      if (user.role === "owner") {
+        return res.status(403).json({ success: false, message: "Owner cannot login as a student" });
       }
     }
 
@@ -54,14 +59,15 @@ const register = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const oid = role === "owner" ? generateOID() : undefined;
-    const hashedOid = await bcrypt.hash(oid, 10);
+    const hashedOid = oid ? await bcrypt.hash(oid, 10) : undefined;
     user = await User.create({
       username,
       email,
       password: hashedPassword,
       role,
-      hashedOid,
+      oid: hashedOid,
     });
+
 
     if (role === "owner") {
       await sendEmail({
@@ -97,40 +103,40 @@ const logout = (req, res) => {
     });
 };
 
-const getInfoById = (req,res) =>{
+const getInfoById = (req, res) => {
 
   const id = req.params.id;
   User.findById(id)
-  .then(data => {
-    if (!data) {
-      res.status(404).send({ message: "Not found user with id" + id });
-    } else {
-      const { _id, username, email } = data;
-      res.status(200).json({ success: true, user: { _id, username, email } });
-    }
-  })
-  .catch(err => {
-    res
-    .status(500)
-    .send({message: "Error retrieving user with id" + id});
-  });
+    .then(data => {
+      if (!data) {
+        res.status(404).send({ message: "Not found user with id" + id });
+      } else {
+        const { _id, username, email } = data;
+        res.status(200).json({ success: true, user: { _id, username, email } });
+      }
+    })
+    .catch(err => {
+      res
+        .status(500)
+        .send({ message: "Error retrieving user with id" + id });
+    });
 
 }
 
-const getAll = (req,res) =>{
+const getAll = (req, res) => {
   User.find()
-  .then(data => {
-    const users = data.map(user => {
-      const { _id, name, email } = user;
-      return { _id, name, email };
+    .then(data => {
+      const users = data.map(user => {
+        const { _id, name, email } = user;
+        return { _id, name, email };
+      });
+      res.status(200).json({ success: true, users });
+    })
+    .catch(err => {
+      res
+        .status(500)
+        .send({ message: err.message || "Error retrieving users" });
     });
-    res.status(200).json({ success: true, users });
-  })
-  .catch(err => {
-    res
-    .status(500)
-    .send({message: err.message || "Error retrieving users"});
-  });
 }
 
 module.exports = { login, register, getMyProfile, logout, getInfoById, getAll };

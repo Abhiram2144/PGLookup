@@ -6,6 +6,7 @@ import Pgs from "./pages/Pgs"
 import Pg from "./pages/Pg"
 import Dashboard from "./pages/Dashboard"
 import Protected from "./components/Protected"
+import Signup from "./pages/SignUp"
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/pg-list" element={<Pgs/>} />
         <Route path="/pg/:id" element={<Pg/>} />
         <Route path="/dashboard" element={<Protected role={"owner"}><Dashboard/></Protected>} />
+        <Route path="/signup" element = {<Signup/>}/>
 
       </Routes>
     
