@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 const Signup = () => {
   const [role, setRole] = useState("student"); // "student" or "owner"
@@ -53,6 +54,8 @@ const Signup = () => {
   };
 
   return (
+    <>
+    <Navbar/>
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-6 rounded shadow-md w-full max-w-sm">
         <h2 className="text-2xl font-semibold mb-4 text-center">Sign Up</h2>
@@ -133,6 +136,7 @@ const Signup = () => {
         </p>
       </div>
     </div>
+    </>
   );
 };
 
