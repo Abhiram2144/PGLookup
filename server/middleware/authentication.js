@@ -2,7 +2,7 @@
 const User = require("../models/user.js");
 const jwt = require("jsonwebtoken");
 // when user account is created we create a token with this secret key so we verify it now
-const secret_key = "pingu";
+const secret_key = process.env.JWT_SECRET_KEY;
 
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
@@ -16,35 +16,27 @@ const authorizeRoles = (...roles) => {
   };
 };
 
-const checkAuth = async(req,res,next)=>{
-    // get the token from the stored cookies
-    const {token}  = req.cookies;
-    // if token is not present
-    if(!token)
-    {
-        return res.status(401).json({success : false , message:"Unauthorized Access"});
+const checkAuth = async (req, res, next) => {
+  try {
+    const { token } = req.cookies;
+    if (!token) {
+      return res.status(401).json({ success: false, message: "Unauthorized Access: No token" });
     }
-    // if token is present
-    // verify the token
-    const decoded = jwt.verify(token,secret_key);
-    // if token is not verified
-    if(!decoded)
-    {
-        return res.status(401).json({success : false , message:"Unauthorized Access"});
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    if (!decoded) {
+      return res.status(401).json({ success: false, message: "Unauthorized Access: Invalid token" });
     }
-    // if token is verified
-    // find the user with the id from the token
     const user = await User.findById(decoded._id);
-    // if user is not found
-    if(!user)
-    {
-        return res.status(401).json({success : false , message:"Unauthorized Access"});
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Unauthorized Access: User not found" });
     }
-    // if user is found
-    // store the user in the request object
     req.user = user;
-    // if we did not use next(), then the flow will be stopped in the middleware and do not continue.
     next();
-}
+  } catch (err) {
+    console.error("Auth error:", err);
+    return res.status(401).json({ success: false, message: "Unauthorized Access: Token error" });
+  }
+};
+
 
 module.exports = {checkAuth, authorizeRoles};

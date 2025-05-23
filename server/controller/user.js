@@ -2,6 +2,7 @@ const User = require("../models/user.js");
 const bcrypt = require("bcrypt");
 const sendCookie = require("../utils/cookie.js");
 const sendEmail = require("../utils/sendMail"); // Create this utility
+const jwt = require("jsonwebtoken");
 
 
 // const login = async (req, res, next) => {
@@ -60,8 +61,7 @@ const login = async (req, res, next) => {
     }
 
     // Role and OID validation logic:
-    if (isOwner) 
-    {
+    if (isOwner) {
       if (user.role !== "owner") {
         return res.status(403).json({ success: false, message: "Not registered as an owner" });
       }
@@ -69,19 +69,36 @@ const login = async (req, res, next) => {
         return res.status(403).json({ success: false, message: "Invalid OID" });
       }
     } else {
-      // User is logging in as student:
       if (user.role === "owner") {
-        // Owner must login with OID; can't skip it
         return res.status(403).json({ success: false, message: "Owner must login with OID" });
       }
     }
 
-    sendCookie(user, res, `Welcome back, ${user.username}`, 200);
+    // Now create token (from your sendCookie logic) and send user data:
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY);
+
+    res
+      .status(200)
+      .cookie("token", token, {
+        httpOnly: true,
+        sameSite: "Lax",
+        expires: new Date(Date.now() +  60 * 60 * 1000),
+      })
+      .json({
+        success: true,
+        message: `Welcome back, ${user.username}`,
+        id: user._id,
+        name: user.username,
+        role: user.role,
+        token,
+        isOwner: user.role === "owner",
+      });
 
   } catch (error) {
     next(error);
   }
 };
+
 
 
 const generateOID = () => Math.floor(100000 + Math.random() * 900000).toString();

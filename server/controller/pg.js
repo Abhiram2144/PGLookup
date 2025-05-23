@@ -5,6 +5,8 @@ const College = require('../models/college');
 // CREATE PG
 // ─────────────────────────────────────────────────────────
 const createPg = async (req, res) => {
+  console.log("came till here, createpg first line");
+  
   const {
     pgName,
     address,
@@ -16,7 +18,9 @@ const createPg = async (req, res) => {
     description,
     collegeNames, // ONLY names come from frontend
   } = req.body;
-
+  console.log(req.body);
+  
+  console.log(req.user);
   try {
     const existingPg = await PG.findOne({ pgName });
     if (existingPg) {
@@ -35,9 +39,10 @@ const createPg = async (req, res) => {
     }
 
     const collegeIds = colleges.map(college => college._id);
-     const ownerId = req.user?.id;
+    const ownerId = req.user._id;
+    
 
-  if (!ownerId) {
+  if (req.user.role !== "owner") {
     return res.status(401).json({ message: "Unauthorized: Owner not identified." });
   }
     const newPg = new PG({

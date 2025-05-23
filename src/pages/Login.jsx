@@ -40,7 +40,8 @@ const Login = () => {
     });
 
     const data = await res.json();
-
+    console.log("data: ",data);
+    
     if (!res.ok) {
       setError(data.message || "Login failed");
       setLoading(false);
@@ -54,8 +55,10 @@ const Login = () => {
       token: data.token,
     });
     toast.success("Successfully logged in!");
+    console.log(req.user);
+    
     setTimeout(() => {
-      navigate("/dashboard");
+      navigate("/");
     }, 500); 
   } catch (err) {
     setError("Network error. Please try again.");
