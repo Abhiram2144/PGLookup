@@ -20,7 +20,7 @@ const Signup = () => {
       setError("Passwords do not match");
       return;
     }
-
+    console.log(username, email, password);
     const payload = {
       username: username.trim(),
       email: email.trim(),

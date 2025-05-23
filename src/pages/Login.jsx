@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import useUser from "../components/useUser";
 import { useState } from "react";
 import Navbar from "../components/Navbar";
+import { toast } from 'react-toastify';
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -51,8 +52,10 @@ const Login = () => {
         role: data.role,
         token: data.token,
       });
-
-      navigate("/dashboard");
+      toast.success("Successfully logged in!");
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 500); // Delay navigation to allow toast to render
     } catch (err) {
       setError("Network error. Please try again.");
     } finally {
@@ -62,73 +65,73 @@ const Login = () => {
 
   return (
     <div >
-    <Navbar/>
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-6 rounded shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-semibold mb-4">Login</h2>
-        <form onSubmit={handleLogin}>
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full mb-3 p-2 border rounded"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full mb-3 p-2 border rounded"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <div className="flex items-center mb-3">
+      <Navbar />
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="bg-white p-6 rounded shadow-md w-full max-w-sm">
+          <h2 className="text-2xl font-semibold mb-4">Login</h2>
+          <form onSubmit={handleLogin}>
             <input
-              id="ownerCheck"
-              type="checkbox"
-              checked={isOwner}
-              onChange={(e) => setIsOwner(e.target.checked)}
-              className="mr-2"
-            />
-            <label htmlFor="ownerCheck" className="text-sm">
-              Are you an owner?
-            </label>
-          </div>
-          {isOwner && (
-            <input
-              type="text"
-              placeholder="Enter OID"
+              type="email"
+              placeholder="Email"
               className="w-full mb-3 p-2 border rounded"
-              value={oid}
-              onChange={(e) => setOid(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
-          )}
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full mb-3 p-2 border rounded"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <div className="flex items-center mb-3">
+              <input
+                id="ownerCheck"
+                type="checkbox"
+                checked={isOwner}
+                onChange={(e) => setIsOwner(e.target.checked)}
+                className="mr-2"
+              />
+              <label htmlFor="ownerCheck" className="text-sm">
+                Are you an owner?
+              </label>
+            </div>
+            {isOwner && (
+              <input
+                type="text"
+                placeholder="Enter OID"
+                className="w-full mb-3 p-2 border rounded"
+                value={oid}
+                onChange={(e) => setOid(e.target.value)}
+                required
+              />
+            )}
 
 
-          {error && <p className="text-red-600 mb-2">{error}</p>}
-          <p className="mt-4 text-sm text-center pb-4">
-            Don't have an account?{" "}
-            <span
-              onClick={() => navigate("/signup")}
-              className="text-blue-600 hover:underline cursor-pointer"
+            {error && <p className="text-red-600 mb-2">{error}</p>}
+            <p className="mt-4 text-sm text-center pb-4">
+              Don't have an account?{" "}
+              <span
+                onClick={() => navigate("/signup")}
+                className="text-blue-600 hover:underline cursor-pointer"
+              >
+                Create one
+              </span>
+            </p>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full py-2 rounded text-white ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+                }`}
             >
-              Create one
-            </span>
-          </p>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full py-2 rounded text-white ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-              }`}
-          >
-            {loading ? "Logging in..." : "Submit"}
-          </button>
-        </form>
+              {loading ? "Logging in..." : "Submit"}
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
     </div>
   );
 };

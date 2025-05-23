@@ -48,7 +48,7 @@ const { checkAuth, authorizeRoles } = require("./middleware/authentication");
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: '*' }));
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 
 // Server and DB
 app.listen(8000, () => {

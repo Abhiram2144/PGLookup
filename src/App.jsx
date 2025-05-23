@@ -7,6 +7,8 @@ import Pg from "./pages/Pg"
 import Dashboard from "./pages/Dashboard"
 import Protected from "./components/Protected"
 import Signup from "./pages/SignUp"
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
@@ -23,6 +25,7 @@ function App() {
       </Routes>
     
     </BrowserRouter>
+    <ToastContainer position="top-center" autoClose={3000} />
    </UserContextProvider>
   )
 }
