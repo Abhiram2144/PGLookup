@@ -4,6 +4,45 @@ const sendCookie = require("../utils/cookie.js");
 const sendEmail = require("../utils/sendMail"); // Create this utility
 
 
+// const login = async (req, res, next) => {
+//   try {
+//     const { email, password, isOwner, oid } = req.body;
+
+//     const user = await User.findOne({ email }).select("+password +oid +role");
+
+//     if (!user) {
+//       return res.status(400).json({ success: false, message: "Invalid Email or Password" });
+//     }
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+
+//     if (!isMatch) {
+//       return res.status(400).json({ success: false, message: "Invalid Email or Password" });
+//     }
+
+//     // Role validation
+//     if (isOwner) {
+//       if (user.role !== "owner") {
+//         return res.status(403).json({ success: false, message: "Not registered as an owner" });
+//       }
+
+//       if (!oid || user.oid !== oid) {
+//         return res.status(403).json({ success: false, message: "Invalid OID" });
+//       }
+
+//     } else {
+//       if (user.role === "owner") {
+//         return res.status(403).json({ success: false, message: "Owner cannot login as a student" });
+//       }
+//     }
+
+//     sendCookie(user, res, `Welcome back, ${user.username}`, 200);
+
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
 const login = async (req, res, next) => {
   try {
     const { email, password, isOwner, oid } = req.body;
@@ -20,19 +59,20 @@ const login = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Invalid Email or Password" });
     }
 
-    // Role validation
-    if (isOwner) {
+    // Role and OID validation logic:
+    if (isOwner) 
+    {
       if (user.role !== "owner") {
         return res.status(403).json({ success: false, message: "Not registered as an owner" });
       }
-
       if (!oid || user.oid !== oid) {
         return res.status(403).json({ success: false, message: "Invalid OID" });
       }
-
     } else {
+      // User is logging in as student:
       if (user.role === "owner") {
-        return res.status(403).json({ success: false, message: "Owner cannot login as a student" });
+        // Owner must login with OID; can't skip it
+        return res.status(403).json({ success: false, message: "Owner must login with OID" });
       }
     }
 
@@ -42,7 +82,6 @@ const login = async (req, res, next) => {
     next(error);
   }
 };
-
 
 
 const generateOID = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -59,13 +98,12 @@ const register = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const oid = role === "owner" ? generateOID() : undefined;
-    const hashedOid = oid ? await bcrypt.hash(oid, 10) : undefined;
     user = await User.create({
       username,
       email,
       password: hashedPassword,
       role,
-      oid: hashedOid,
+      oid: oid,
     });
 
 

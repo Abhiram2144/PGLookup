@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { toast } from "react-toastify";
 
 const Signup = () => {
   const [role, setRole] = useState("student"); // "student" or "owner"
@@ -44,7 +45,7 @@ const Signup = () => {
         setError(data.message || "Signup failed");
         return;
       }
-
+      toast.success("Successfully signed up!");
       navigate("/login");
     } catch (err) {
       setError("Network error. Please try again.");

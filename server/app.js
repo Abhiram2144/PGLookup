@@ -4,6 +4,16 @@ const app = express();
 const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail", // Or your email service
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+const Pg = require("./models/pg");
 // index.js or app.js
 
 // User Controllers
@@ -86,7 +96,45 @@ app.post("/api/v1/pg/new", checkAuth, authorizeRoles("owner"), createPg);
 app.delete("/api/v1/pg/delete/:pgid", authorizeRoles("owner"), checkAuth, deletePg);
 app.patch("/api/v1/pg/edit/:pgid", authorizeRoles("owner"),checkAuth, updatePg);
 
+app.post("/api/v1/pg/contact-owner", async (req, res) => {
+  try {
+    const { pgId, ownerEmail, contactDetails, pgName } = req.body;
 
+    if (!ownerEmail) {
+      return res.status(400).json({ message: "Owner email is required" });
+    }
+
+    const { name, occupation, homeState, phone } = contactDetails;
+
+    // Compose email content with the contact details
+    const mailOptions = {
+      from: `"PG Contact" <${process.env.SMTP_USER}>`,
+      to: ownerEmail,
+      subject: `New Contact Request for PG ID: ${pgName}`,
+      html: `
+        <h3>Contact Request Details</h3>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Occupation:</strong> ${occupation}</p>
+        <p><strong>Home State:</strong> ${homeState}</p>
+        <p><strong>Phone Number:</strong> ${phone}</p>
+        <p><strong>PG ID Interested:</strong> ${pgName}</p>
+      `,
+    };
+
+    // Send email
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+        return res.status(500).json({ message: "Failed to send email" });
+      }
+      console.log("Email sent: " + info.response);
+      return res.status(200).json({ message: "Email sent successfully" });
+    });
+  } catch (error) {
+    console.error("Contact owner error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 
 // ----- COLLEGE Routes -----

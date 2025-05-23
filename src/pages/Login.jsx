@@ -15,53 +15,54 @@ const Login = () => {
   const { login } = useUser();
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+ const handleLogin = async (e) => {
+  e.preventDefault();
+  setError(null);
+  setLoading(true);
 
-    const payload = {
-      email: username.trim(),
-      password: password.trim(),
-    };
-
-    if (isOwner) {
-      payload.oid = oid.trim();
-    }
-
-    try {
-      const res = await fetch("http://localhost:8000/api/v1/user/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || "Login failed");
-        setLoading(false);
-        return;
-      }
-
-      login({
-        id: data.id,
-        name: data.name,
-        role: data.role,
-        token: data.token,
-      });
-      toast.success("Successfully logged in!");
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 500); // Delay navigation to allow toast to render
-    } catch (err) {
-      setError("Network error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+  const payload = {
+    email: username.trim(),
+    password: password.trim(),
+    isOwner: isOwner,   // <-- send this explicitly
   };
+
+  if (isOwner) {
+    payload.oid = oid.trim();
+  }
+
+  try {
+    const res = await fetch("http://localhost:8000/api/v1/user/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.message || "Login failed");
+      setLoading(false);
+      return;
+    }
+
+    login({
+      id: data.id,
+      name: data.name,
+      role: data.role,
+      token: data.token,
+    });
+    toast.success("Successfully logged in!");
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 500); 
+  } catch (err) {
+    setError("Network error. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div >

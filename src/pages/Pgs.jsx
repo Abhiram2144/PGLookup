@@ -22,7 +22,8 @@ const PgList = () => {
       })
       .catch((err) => console.error("Fetch failed:", err));
   }, []);
-
+  console.log(pgs);
+  
   const collegeOptions = [...new Set((pgs || []).flatMap(pg => pg.collegeNames || []))];
 
   const handleCollegeFilter = (college) => {
@@ -35,10 +36,11 @@ const PgList = () => {
 
   const paginatedPgs = filteredPgs.slice((currentPage - 1) * pgsPerPage, currentPage * pgsPerPage);
   const totalPages = Math.ceil(filteredPgs.length / pgsPerPage) || 1;
-
+  
   return (
     <>
       <Navbar />
+      
       <div className="pt-24 p-6 max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-4 relative z-50">
           <h2 className="text-2xl font-bold">List of PGs</h2>
