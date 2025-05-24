@@ -53,7 +53,6 @@ const createPg = async (req, res) => {
 const getPgs = async (req, res) => {
   try {
     const pgs = await PG.find({})
-      .populate('collegeIds')        // for full college details
       .populate('reviews')
       .populate('ownerId', '-password'); // if you have virtual population
 
@@ -70,7 +69,6 @@ const getPgById = async (req, res) => {
   const pgid = req.params.pgid;
   try {
     const pg = await PG.findById(pgid)
-      .populate('collegeIds')
       .populate('reviews')
       .populate('ownerId', '-password');
 
