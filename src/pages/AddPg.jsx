@@ -16,6 +16,7 @@ const collegeOptions = [
 ];
 
 const AddPgForm = () => {
+  const { user } = useUser();
   const [form, setForm] = useState({
     pgName: "",
     description: "",
@@ -54,26 +55,24 @@ const AddPgForm = () => {
     // const {user} = useUser();
     // console.log("user: ", user);
     e.preventDefault();
-    const formData = new FormData();
-
-    Object.entries(form).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        value.forEach((v) => formData.append(key, v));
-      } else {
-        formData.append(key, value);
-      }
-    });
-
-    images.forEach((img) => formData.append("images", img));
     console.log("came till here, addpgform first line");
     // form.ownerId = localStorage.getItem("userId");
     // form.ownerId = "123ksdf"
     // console.log("owner id: ",user);
     // console.log(form);
     console.log(form);
-    
+      if (!user || !user.id) {
+    toast.error("Owner not logged in or user ID missing!");
+    return;
+  }
+
+  // Add ownerId to the form state
+  const payload = {
+    ...form,
+    ownerId: user.id
+  };
     try {
-      const res = axios.post("http://localhost:8000/api/v1/pg/new", form);
+      const res = axios.post("http://localhost:8000/api/v1/pg/new", payload);
       console.log("came till here, addpgform second line");
       if ((await res).status === 200) {
         toast.success("PG added successfully!");

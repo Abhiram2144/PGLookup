@@ -17,7 +17,7 @@ const createPg = async (req, res) => {
     images,
     description,
     collegeNames, // ONLY names come from frontend
-    // ownerId
+    ownerId
   } = req.body;
   try {
     const existingPg = await PG.findOne({ pgName });
@@ -26,7 +26,6 @@ const createPg = async (req, res) => {
     }
     
     // console.log(res);
-    const ownerId = "5f6c3e3e3e3e3e3e3e3e3e3e";
 
     const newPg = new PG({
       pgName,
