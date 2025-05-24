@@ -1,17 +1,43 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, LogOut, Building, PlusCircle } from "lucide-react";
+import { Home, LogOut, Building, PlusCircle, Pencil, Trash2, X } from "lucide-react";
 import useUser from "../components/useUser";
-import AddPgForm from "./AddPg"; // Adjust the path if needed
+import AddPgForm from "./AddPg";
 
 const OwnerDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("myPgs");
   const { user, logout } = useUser();
+  const [pgs, setPgs] = useState([]);
+  const [editMode, setEditMode] = useState(false);
+  const [editPgData, setEditPgData] = useState(null);
 
   useEffect(() => {
     setActiveTab("myPgs");
+    fetchMyPgs();
   }, []);
+
+  const fetchMyPgs = async () => {
+
+  try {
+    console.log("user.id:", user.id);
+    const res = await fetch(`http://localhost:8000/api/v1/pg/owner/${user.id}`);
+    const data = await res.json();
+
+    console.log("Fetched PGs:", data.pgs);
+
+    if (Array.isArray(data.pgs)) {
+      setPgs(data.pgs);
+    } else {
+      console.error("Expected an array but got:", data);
+      setPgs([]); // fallback
+    }
+  } catch (err) {
+    console.error("Failed to fetch PGs:", err);
+    setPgs([]);
+  }
+};
+
 
   const handleLogout = async () => {
     try {
@@ -31,9 +57,41 @@ const OwnerDashboard = () => {
     }
   };
 
+  const handleDelete = async (pgId) => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/v1/pg/delete/${pgId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        fetchMyPgs();
+      }
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`http://localhost:8000/api/v1/pg/edit/${editPgData._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editPgData),
+      });
+      if (res.ok) {
+        setEditMode(false);
+        setEditPgData(null);
+        fetchMyPgs();
+      }
+    } catch (err) {
+      console.error("Edit failed:", err);
+    }
+  };
+
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar */}
       <aside className="w-64 bg-gray-900 text-white flex flex-col justify-between p-4">
         <div>
           <div
@@ -80,21 +138,86 @@ const OwnerDashboard = () => {
         </button>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 p-6">
         {activeTab === "myPgs" && (
           <div>
             <h1 className="text-2xl font-semibold mb-4">My PGs</h1>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <div className="bg-white p-4 rounded shadow">
-                <h2 className="text-lg font-bold">Sunrise Hostel</h2>
-                <p className="text-sm text-gray-600">Near XYZ College, Delhi</p>
-              </div>
-              <div className="bg-white p-4 rounded shadow">
-                <h2 className="text-lg font-bold">Blue Moon PG</h2>
-                <p className="text-sm text-gray-600">Sector 21, Noida</p>
-              </div>
+              {pgs.map((pg) => (
+                <div key={pg._id} className="bg-white p-4 rounded shadow relative">
+                  <h2 className="text-lg font-bold">{pg.name}</h2>
+                  <p className="text-sm text-gray-600">{pg.address}</p>
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      className="flex items-center gap-1 px-3 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-600"
+                      onClick={() => {
+                        setEditPgData(pg);
+                        setEditMode(true);
+                      }}
+                    >
+                      <Pencil className="w-4 h-4" /> Edit
+                    </button>
+                    <button
+                      className="flex items-center gap-1 px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600"
+                      onClick={() => handleDelete(pg._id)}
+                    >
+                      <Trash2 className="w-4 h-4" /> Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
+
+            {/* Edit Modal */}
+            {editMode && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <form
+                  onSubmit={handleEditSubmit}
+                  className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md"
+                >
+                  <h2 className="text-xl font-bold mb-4">Edit PG</h2>
+                  <input
+                    type="text"
+                    value={editPgData.name}
+                    onChange={(e) =>
+                      setEditPgData({ ...editPgData, name: e.target.value })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded mb-3"
+                    placeholder="Name"
+                    required
+                  />
+                  <input
+                    type="text"
+                    value={editPgData.address}
+                    onChange={(e) =>
+                      setEditPgData({ ...editPgData, address: e.target.value })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded mb-3"
+                    placeholder="Address"
+                    required
+                  />
+                  {/* Add more fields as needed */}
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditMode(false);
+                        setEditPgData(null);
+                      }}
+                      className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
           </div>
         )}
 

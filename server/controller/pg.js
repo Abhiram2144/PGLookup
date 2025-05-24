@@ -1,12 +1,13 @@
 const PG = require('../models/pg');
 const College = require('../models/college');
 const { toast } = require('react-toastify');
+const { default: mongoose } = require('mongoose');
 
 // ─────────────────────────────────────────────────────────
 // CREATE PG
 // ─────────────────────────────────────────────────────────
 const createPg = async (req, res) => {
-  
+
   const {
     pgName,
     address,
@@ -24,7 +25,7 @@ const createPg = async (req, res) => {
     if (existingPg) {
       return res.status(400).json({ message: "PG already exists" });
     }
-    
+
     // console.log(res);
 
     const newPg = new PG({
@@ -160,10 +161,32 @@ const updatePg = async (req, res) => {
   }
 };
 
+// get pg by user id
+
+const getPgsByOwnerId = async (req, res) => {
+  const ownerId = req.params.ownerId;
+
+  try {
+    const { ObjectId } = require('mongoose').Types;
+    console.log("ownerId: ", ownerId);
+    
+    if (!ObjectId.isValid(ownerId)) {
+      return res.status(400).json({ message: 'Invalid ownerId' });
+    }
+
+    const pgs = await PG.find({ ownerId: new ObjectId(ownerId) });
+    // const pgs = await PG.find({ ownerId: objectId });
+    res.status(200).json({ pgs });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
 module.exports = {
   createPg,
   getPgs,
   getPgById,
   deletePg,
   updatePg,
+  getPgsByOwnerId,
 };
