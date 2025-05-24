@@ -1,11 +1,6 @@
 const mongoose = require('mongoose');
 
 const pgSchema = new mongoose.Schema({
-  collegeIds: [{
-  type: mongoose.Schema.Types.ObjectId,
-  ref: 'College',
-  required: true
-}],
   collegeNames: [{
     type: String,
     required: true

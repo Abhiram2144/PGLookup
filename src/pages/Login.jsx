@@ -12,7 +12,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const { login } = useUser();
+  const { login , user} = useUser();
   const navigate = useNavigate();
 
  const handleLogin = async (e) => {
@@ -55,12 +55,13 @@ const Login = () => {
       token: data.token,
     });
     toast.success("Successfully logged in!");
-    console.log(req.user);
+    console.log("user: ",user);
     
     setTimeout(() => {
       navigate("/");
     }, 500); 
   } catch (err) {
+    console.error(err);
     setError("Network error. Please try again.");
   } finally {
     setLoading(false);

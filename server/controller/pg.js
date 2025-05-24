@@ -1,11 +1,11 @@
 const PG = require('../models/pg');
 const College = require('../models/college');
+const { toast } = require('react-toastify');
 
 // ─────────────────────────────────────────────────────────
 // CREATE PG
 // ─────────────────────────────────────────────────────────
 const createPg = async (req, res) => {
-  console.log("came till here, createpg first line");
   
   const {
     pgName,
@@ -17,34 +17,17 @@ const createPg = async (req, res) => {
     images,
     description,
     collegeNames, // ONLY names come from frontend
+    // ownerId
   } = req.body;
-  console.log(req.body);
-  
-  console.log(req.user);
   try {
     const existingPg = await PG.findOne({ pgName });
     if (existingPg) {
       return res.status(400).json({ message: "PG already exists" });
     }
-
-    // Fetch collegeIds from names
-    const colleges = await College.find({ collegeName: { $in: collegeNames } });
-
-    if (colleges.length !== collegeNames.length) {
-      const foundNames = colleges.map(c => c.collegeName);
-      const notFound = collegeNames.filter(name => !foundNames.includes(name));
-      return res.status(400).json({
-        message: `Invalid college name(s): ${notFound.join(', ')}`
-      });
-    }
-
-    const collegeIds = colleges.map(college => college._id);
-    const ownerId = req.user._id;
     
+    // console.log(res);
+    const ownerId = "5f6c3e3e3e3e3e3e3e3e3e3e";
 
-  if (req.user.role !== "owner") {
-    return res.status(401).json({ message: "Unauthorized: Owner not identified." });
-  }
     const newPg = new PG({
       pgName,
       address,
@@ -54,11 +37,9 @@ const createPg = async (req, res) => {
       cityName,
       images,
       description,
-      collegeIds,
       collegeNames,
       ownerId,
     });
-    
     const savedPg = await newPg.save();
     res.status(200).send({ pg: savedPg, message: "New PG successfully added!!" });
   } catch (err) {

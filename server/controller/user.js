@@ -93,7 +93,8 @@ const login = async (req, res, next) => {
         token,
         isOwner: user.role === "owner",
       });
-
+      console.log(res);
+      
   } catch (error) {
     next(error);
   }

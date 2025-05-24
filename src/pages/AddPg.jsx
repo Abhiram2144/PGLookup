@@ -1,7 +1,9 @@
+import axios from "axios";
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import Select from "react-select";
 import { toast } from "react-toastify";
+import useUser from "../components/useUser";
 
 const collegeOptions = [
   { value: "IIT Delhi", label: "IIT Delhi" },
@@ -22,7 +24,8 @@ const AddPgForm = () => {
     rent: "",
     roomsVacant: "",
     contact: "",
-    collegeNames: [],
+    collegeNames: []
+    // ownerId : ""
   });
 
   const [images, setImages] = useState([]);
@@ -42,11 +45,14 @@ const AddPgForm = () => {
   });
 
   const handleChange = (e) => {
+    
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
+    // const {user} = useUser();
+    // console.log("user: ", user);
     e.preventDefault();
     const formData = new FormData();
 
@@ -60,15 +66,16 @@ const AddPgForm = () => {
 
     images.forEach((img) => formData.append("images", img));
     console.log("came till here, addpgform first line");
+    // form.ownerId = localStorage.getItem("userId");
+    // form.ownerId = "123ksdf"
+    // console.log("owner id: ",user);
+    // console.log(form);
+    console.log(form);
+    
     try {
-      const res = await fetch("http://localhost:8000/api/v1/pg/new", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
+      const res = axios.post("http://localhost:8000/api/v1/pg/new", form);
       console.log("came till here, addpgform second line");
-      console.log(res);
-      if (res.ok) {
+      if ((await res).status === 200) {
         toast.success("PG added successfully!");
         setForm({
           pgName: "",
