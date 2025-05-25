@@ -26,7 +26,6 @@ const Navbar = () => {
       console.error("Logout error:", err);
     }
   };
-  console.log("user: ", user);
   return (
     <nav className="fixed top-0 left-0 w-full bg-gray-100 border-b border-gray-300 shadow-sm py-4 px-6 flex justify-between items-center z-40">
       <Link to="/" className="text-2xl font-bold text-gray-800">

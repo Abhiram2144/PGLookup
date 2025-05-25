@@ -1,3 +1,4 @@
+const upload = require("./middleware/multer");
 require("dotenv").config();
 const express = require("express");
 const app = express();
@@ -15,7 +16,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASS,
   },
 });
-const Pg = require("./models/pg");
 // index.js or app.js
 
 // User Controllers
@@ -57,7 +57,7 @@ const {
 } = require("./controller/college");
 
 // Middleware
-const { checkAuth, authorizeRoles } = require("./middleware/authentication");
+const { checkAuth } = require("./middleware/authentication");
 
 app.use(express.json());
 app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
@@ -94,7 +94,7 @@ app.patch("/api/v1/review/:rid", checkAuth, editReview);
 // ----- PG Routes -----
 app.get("/api/v1/pg/all", getPgs);
 app.get("/api/v1/pg/pg/:pgid", getPgById);
-app.post("/api/v1/pg/new", createPg);
+app.post("/api/v1/pg/new", upload.array("images", 5), createPg);
 app.delete("/api/v1/pg/delete/:pgid",  deletePg);
 app.patch("/api/v1/pg/edit/:pgid", updatePg);
 app.get("/api/v1/pg/owner/:ownerId", getPgsByOwnerId);

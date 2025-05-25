@@ -1,8 +1,5 @@
 const PG = require('../models/pg');
-const College = require('../models/college');
-const { toast } = require('react-toastify');
-const { default: mongoose } = require('mongoose');
-
+const imagekit = require("../utils/imageKit");
 // ─────────────────────────────────────────────────────────
 // CREATE PG
 // ─────────────────────────────────────────────────────────
@@ -15,11 +12,24 @@ const createPg = async (req, res) => {
     roomsVacant,
     rent,
     cityName,
-    images,
+    // images,
     description,
     collegeNames, // ONLY names come from frontend
     ownerId
   } = req.body;
+  const files = req.files;
+
+  let images = [];
+
+    for (const file of files) {
+      const result = await imagekit.upload({
+        file: file.buffer,
+        fileName: `${pgName}_${Date.now()}`,
+      });
+      images.push(result.url);
+    }
+
+
   try {
     const existingPg = await PG.findOne({ pgName });
     if (existingPg) {
@@ -39,6 +49,7 @@ const createPg = async (req, res) => {
       description,
       collegeNames,
       ownerId,
+      images
     });
     const savedPg = await newPg.save();
     res.status(200).send({ pg: savedPg, message: "New PG successfully added!!" });
@@ -123,18 +134,7 @@ const updatePg = async (req, res) => {
       return res.status(404).json({ message: "PG not found" });
     }
 
-    // Convert names to IDs again
-    const colleges = await College.find({ collegeName: { $in: collegeNames } });
 
-    if (colleges.length !== collegeNames.length) {
-      const foundNames = colleges.map(c => c.collegeName);
-      const notFound = collegeNames.filter(name => !foundNames.includes(name));
-      return res.status(400).json({
-        message: `Invalid college name(s): ${notFound.join(', ')}`
-      });
-    }
-
-    const collegeIds = colleges.map(college => college._id);
 
     const updatedPg = await PG.findByIdAndUpdate(
       pgid,
@@ -147,7 +147,6 @@ const updatePg = async (req, res) => {
         cityName,
         images,
         description,
-        collegeIds,
         collegeNames,
       },
       { new: true } // return the updated doc
@@ -166,7 +165,6 @@ const getPgsByOwnerId = async (req, res) => {
 
   try {
     const { ObjectId } = require('mongoose').Types;
-    console.log("ownerId: ", ownerId);
     
     if (!ObjectId.isValid(ownerId)) {
       return res.status(400).json({ message: 'Invalid ownerId' });

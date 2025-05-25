@@ -22,7 +22,6 @@ const PgList = () => {
       })
       .catch((err) => console.error("Fetch failed:", err));
   }, []);
-  console.log(pgs);
   
   const collegeOptions = [...new Set((pgs || []).flatMap(pg => pg.collegeNames || []))];
 
@@ -47,7 +46,7 @@ const PgList = () => {
           <select
             value={selectedCollege}
             onChange={(e) => handleCollegeFilter(e.target.value)}
-            className="border p-2 rounded bg-white shadow relative z-50"
+            className="border p-2 rounded bg-white shadow relative z-50 cursor-pointer"
           >
             <option value="">All Colleges</option>
             {collegeOptions.map((college, index) => (
@@ -85,7 +84,7 @@ const PgList = () => {
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(currentPage - 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
+            className="px-3 py-1 border rounded disabled:opacity-50 cursor-pointer"
           >
             &larr; Prev
           </button>
@@ -95,7 +94,7 @@ const PgList = () => {
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(currentPage + 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
+            className="px-3 py-1 border rounded disabled:opacity-50 cursor-pointer"
           >
             Next &rarr;
           </button>

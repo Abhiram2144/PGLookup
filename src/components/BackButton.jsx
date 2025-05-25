@@ -6,7 +6,7 @@ const BackButton = ({ className = "" }) => {
   return (
     <button
       onClick={() => navigate(-1)}
-      className={`text-blue-600 hover:underline ${className}`}
+      className={`text-black cursor-pointer hover:underline ${className}`}
     >
       &larr; Back
     </button>

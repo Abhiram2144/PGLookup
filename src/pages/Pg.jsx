@@ -7,7 +7,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation } from "swiper/modules";
 import BackButton from "../components/BackButton";
-import {toast} from 'react-toastify';
+import { toast } from 'react-toastify';
 const PgDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -24,8 +24,11 @@ const PgDetail = () => {
   useEffect(() => {
     axios
       .get(`http://localhost:8000/api/v1/pg/pg/${id}`)
-      .then((res) => setPg(res.data.pg))
+      .then((res) => {
+        setPg(res.data.pg);
+      })
       .catch((err) => console.error("Failed to fetch PG details", err));
+
   }, [id]);
 
   const openModal = () => setModalOpen(true);
@@ -35,35 +38,35 @@ const PgDetail = () => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!formData.name || !formData.occupation || !formData.homeState || !formData.phone) {
-    alert("Please fill all fields");
-    return;
-  }
+    if (!formData.name || !formData.occupation || !formData.homeState || !formData.phone) {
+      alert("Please fill all fields");
+      return;
+    }
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    await axios.post("http://localhost:8000/api/v1/pg/contact-owner", {
-      pgId: pg._id,
-      ownerEmail: pg.ownerId.email,  // already fetched from frontend state
-      contactDetails: formData,
-      pgName: pg.pgName
-    });
+    try {
+      await axios.post("http://localhost:8000/api/v1/pg/contact-owner", {
+        pgId: pg._id,
+        ownerEmail: pg.ownerId.email,  // already fetched from frontend state
+        contactDetails: formData,
+        pgName: pg.pgName
+      });
 
-    toast.success("Message sent successfully!");
-    setModalOpen(false);
-    setFormData({ name: "", occupation: "", homeState: "", phone: "" });
-  } catch (error) {
-    console.error("Failed to send message", error);
-    alert("Failed to send message. Please try again later.");
-  } finally {
-    setLoading(false);
-  }
-};
+      toast.success("Message sent successfully!");
+      setModalOpen(false);
+      setFormData({ name: "", occupation: "", homeState: "", phone: "" });
+    } catch (error) {
+      console.error("Failed to send message", error);
+      alert("Failed to send message. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-
+  console.log("images: ", pg);
   if (!pg) return <div className="p-6">Loading...</div>;
 
   return (
@@ -73,7 +76,7 @@ const PgDetail = () => {
         <BackButton className="mb-4" />
         <h1 className="text-4xl font-bold">{pg.pgName}</h1>
 
-        
+
 
         <div className="bg-white shadow p-6 rounded-xl space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
@@ -94,7 +97,7 @@ const PgDetail = () => {
             </p>
             <p>
               <strong>College:</strong>{" "}
-              {(pg.collegeIds || []).map((c) => c.name).join(", ")}
+              {(pg.collegeNames || []).map((c) => c).join(", ")}
             </p>
           </div>
           <div>
@@ -106,6 +109,38 @@ const PgDetail = () => {
         </div>
 
         {/* ... Your existing Swiper galleries and reviews ... */}
+        <div className="bg-white shadow p-6 rounded-xl space-y-4">
+          <h2 className="text-2xl font-semibold mb-4">Gallery</h2>
+          {pg.images && pg.images.length > 0 ? (
+            <Swiper
+              modules={[Navigation]}
+              navigation
+              spaceBetween={20}
+              slidesPerView={1}
+              breakpoints={{
+                640: { slidesPerView: 1 },
+                768: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 },
+              }}
+              className="rounded-lg"
+            >
+              {pg.images.map((url, index) => (
+                <SwiperSlide key={index}>
+                  <img
+                    src={url}
+                    alt={`PG Image ${index + 1}`}
+                    className="w-full h-64 object-cover rounded-lg shadow"
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          ) : (
+            <p className="text-gray-500 text-center italic">
+              No images for this PG have been uploaded yet.
+            </p>
+          )}
+        </div>
+
 
         {/* Modal Form */}
         {modalOpen && (
@@ -169,7 +204,7 @@ const PgDetail = () => {
         )}
         <button
           onClick={openModal}
-          className="mb-6 bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700 transition"
+          className="mb-6 bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700 transition cursor-pointer"
         >
           Contact Owner
         </button>

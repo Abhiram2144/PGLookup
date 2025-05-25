@@ -15,7 +15,7 @@ const collegeOptions = [
   { value: "Amity University", label: "Amity University" },
 ];
 
-const AddPgForm = () => {
+const AddPgForm = ({onPgAdded}) => {
   const { user } = useUser();
   const [form, setForm] = useState({
     pgName: "",
@@ -52,15 +52,9 @@ const AddPgForm = () => {
   };
 
   const handleSubmit = async (e) => {
-    // const {user} = useUser();
-    // console.log("user: ", user);
+
     e.preventDefault();
-    console.log("came till here, addpgform first line");
-    // form.ownerId = localStorage.getItem("userId");
-    // form.ownerId = "123ksdf"
-    // console.log("owner id: ",user);
-    // console.log(form);
-    console.log(form);
+
       if (!user || !user.id) {
     toast.error("Owner not logged in or user ID missing!");
     return;
@@ -71,11 +65,33 @@ const AddPgForm = () => {
     ...form,
     ownerId: user.id
   };
+
+  const formData = new FormData();
+
+  // Append text fields
+  formData.append("pgName", form.pgName);
+  formData.append("description", form.description);
+  formData.append("address", form.address);
+  formData.append("cityName", form.cityName);
+  formData.append("rent", form.rent);
+  formData.append("roomsVacant", form.roomsVacant);
+  formData.append("contact", form.contact);
+  formData.append("ownerId", user.id);
+
+  // Append college names (you’re only allowing one, but in case you extend it later)
+  form.collegeNames.forEach((college) => formData.append("collegeNames", college));
+
+  // Append image files
+  images.forEach((image) => {
+    formData.append("images", image);
+  });
+
     try {
-      const res = axios.post("http://localhost:8000/api/v1/pg/new", payload);
-      console.log("came till here, addpgform second line");
+      const res = axios.post("http://localhost:8000/api/v1/pg/new", formData, {
+  headers: { "Content-Type": "multipart/form-data" }});
       if ((await res).status === 200) {
         toast.success("PG added successfully!");
+        onPgAdded();
         setForm({
           pgName: "",
           description: "",
