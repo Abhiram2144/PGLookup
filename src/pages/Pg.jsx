@@ -66,7 +66,7 @@ const PgDetail = () => {
     }
   };
 
-  console.log("images: ", pg);
+  // console.log("images: ", pg);
   if (!pg) return <div className="p-6">Loading...</div>;
 
   return (

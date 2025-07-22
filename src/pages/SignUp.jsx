@@ -44,7 +44,7 @@ const Signup = () => {
       setError("Passwords do not match");
       return;
     }
-    console.log(username, email, password);
+    // console.log(username, email, password);
     const payload = {
       username: username.trim(),
       email: email.trim(),
@@ -68,7 +68,7 @@ const Signup = () => {
         setError(data.message || "Signup failed");
         return;
       }
-      toast.success("Successfully signed up!");
+      toast.success("Successfully signed up! Check your mail for OID.");
       navigate("/login");
     } catch (err) {
       setError("Network error. Please try again.");

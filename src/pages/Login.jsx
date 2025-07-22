@@ -40,7 +40,7 @@ const Login = () => {
     });
 
     const data = await res.json();
-    console.log("data: ",data);
+    // console.log("data: ",data);
     
     if (!res.ok) {
       setError(data.message || "Login failed");
@@ -55,7 +55,7 @@ const Login = () => {
       token: data.token,
     });
     toast.success("Successfully logged in!");
-    console.log("user: ",user);
+    // console.log("user: ",user);
     
     setTimeout(() => {
       navigate("/");

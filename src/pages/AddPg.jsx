@@ -1,22 +1,14 @@
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import Select from "react-select";
+import CreatableSelect from "react-select/creatable";
 import { toast } from "react-toastify";
 import useUser from "../components/useUser";
 
-const collegeOptions = [
-  { value: "IIT Delhi", label: "IIT Delhi" },
-  { value: "Delhi University", label: "Delhi University" },
-  { value: "Jamia Millia Islamia", label: "Jamia Millia Islamia" },
-  { value: "NSIT", label: "NSIT" },
-  { value: "IIIT Delhi", label: "IIIT Delhi" },
-  { value: "DTU", label: "DTU" },
-  { value: "Amity University", label: "Amity University" },
-];
-
-const AddPgForm = ({onPgAdded}) => {
+const AddPgForm = ({ onPgAdded }) => {
   const { user } = useUser();
+  const [collegeOptions, setCollegeOptions] = useState([]);
+
   const [form, setForm] = useState({
     pgName: "",
     description: "",
@@ -25,8 +17,7 @@ const AddPgForm = ({onPgAdded}) => {
     rent: "",
     roomsVacant: "",
     contact: "",
-    collegeNames: []
-    // ownerId : ""
+    collegeNames: [],
   });
 
   const [images, setImages] = useState([]);
@@ -46,50 +37,63 @@ const AddPgForm = ({onPgAdded}) => {
   });
 
   const handleChange = (e) => {
-    
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  // 🔁 Fetch all existing colleges from backend
+  useEffect(() => {
+    const fetchColleges = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_API}/api/v1/college/all`);
+        // console.log(res.data);
 
+        const formatted = res.data.colleges.map((college) => ({
+          value: college.collegeName,
+          label: college.collegeName,
+        }));
+
+        setCollegeOptions(formatted);
+      } catch (err) {
+        console.error("Failed to fetch colleges", err);
+      }
+    };
+    fetchColleges();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-      if (!user || !user.id) {
-    toast.error("Owner not logged in or user ID missing!");
-    return;
-  }
+    if (!user || !user.id) {
+      toast.error("Owner not logged in or user ID missing!");
+      return;
+    }
 
-  // Add ownerId to the form state
-  const payload = {
-    ...form,
-    ownerId: user.id
-  };
+    const formData = new FormData();
 
-  const formData = new FormData();
+    Object.entries({
+      ...form,
+      ownerId: user.id,
+    }).forEach(([key, value]) => {
+      if (key === "collegeNames") {
+        value.forEach((college) => formData.append("collegeNames", college));
+      } else {
+        formData.append(key, value);
+      }
+    });
 
-  // Append text fields
-  formData.append("pgName", form.pgName);
-  formData.append("description", form.description);
-  formData.append("address", form.address);
-  formData.append("cityName", form.cityName);
-  formData.append("rent", form.rent);
-  formData.append("roomsVacant", form.roomsVacant);
-  formData.append("contact", form.contact);
-  formData.append("ownerId", user.id);
-
-  // Append college names (you’re only allowing one, but in case you extend it later)
-  form.collegeNames.forEach((college) => formData.append("collegeNames", college));
-
-  // Append image files
-  images.forEach((image) => {
-    formData.append("images", image);
-  });
+    images.forEach((image) => {
+      formData.append("images", image);
+    });
 
     try {
-      const res = axios.post(`${Meta.env.VITE_BACKEND_API}/api/v1/pg/new`, formData, {
-  headers: { "Content-Type": "multipart/form-data" }});
-      if ((await res).status === 200) {
+      const res = await axios.post(
+        `${import.meta.env.VITE_BACKEND_API}/api/v1/pg/new`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      if (res.status === 200) {
         toast.success("PG added successfully!");
         onPgAdded();
         setForm({
@@ -120,13 +124,7 @@ const AddPgForm = ({onPgAdded}) => {
     >
       <h2 className="text-2xl font-bold mb-6">Add New PG</h2>
 
-      <Input
-        label="PG Name"
-        name="pgName"
-        value={form.pgName}
-        onChange={handleChange}
-        required
-      />
+      <Input label="PG Name" name="pgName" value={form.pgName} onChange={handleChange} required />
       <Textarea
         label="Description"
         name="description"
@@ -134,20 +132,8 @@ const AddPgForm = ({onPgAdded}) => {
         onChange={handleChange}
         required
       />
-      <Input
-        label="Address"
-        name="address"
-        value={form.address}
-        onChange={handleChange}
-        required
-      />
-      <Input
-        label="City Name"
-        name="cityName"
-        value={form.cityName}
-        onChange={handleChange}
-        required
-      />
+      <Input label="Address" name="address" value={form.address} onChange={handleChange} required />
+      <Input label="City Name" name="cityName" value={form.cityName} onChange={handleChange} required />
       <Input
         label="Rent Per Month (₹)"
         type="number"
@@ -172,10 +158,10 @@ const AddPgForm = ({onPgAdded}) => {
         required
       />
 
-      {/* College Dropdown */}
+      {/* ✅ Dynamic College Dropdown */}
       <div className="mb-4">
         <label className="block font-medium mb-1">College Name</label>
-        <Select
+        <CreatableSelect
           options={collegeOptions}
           value={collegeOptions.find((opt) =>
             form.collegeNames.includes(opt.value)
@@ -186,9 +172,22 @@ const AddPgForm = ({onPgAdded}) => {
               collegeNames: selected ? [selected.value] : [],
             }))
           }
-          placeholder="Select college..."
-          isSearchable
+          placeholder="Select or type to add new..."
+          isClearable
+          filterOption={(option, rawInput) => {
+            try {
+              const safeInput = (rawInput || "").toString(); // guard against null/undefined
+              const escapedInput = safeInput.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+              const regex = new RegExp(escapedInput, "i");
+              return regex.test(option.label);
+            } catch (err) {
+              console.warn("Regex filter error:", err);
+              return false;
+            }
+          }}
+
         />
+
       </div>
 
       {/* Image Upload */}
@@ -196,9 +195,8 @@ const AddPgForm = ({onPgAdded}) => {
         <label className="block font-medium mb-1">Upload Images</label>
         <div
           {...getRootProps()}
-          className={`border-2 border-dashed px-6 py-12 rounded cursor-pointer text-center ${
-            isDragActive ? "bg-gray-100" : "bg-gray-50"
-          }`}
+          className={`border-2 border-dashed px-6 py-12 rounded cursor-pointer text-center ${isDragActive ? "bg-gray-100" : "bg-gray-50"
+            }`}
         >
           <input {...getInputProps()} />
           {isDragActive ? (
