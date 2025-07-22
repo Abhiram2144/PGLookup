@@ -10,7 +10,7 @@ const PgList = () => {
   const pgsPerPage = 5;
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/v1/pg/all")
+    fetch(`${import.meta.env.VITE_BACKEND_API}/api/v1/pg/all`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data.pgs)) {

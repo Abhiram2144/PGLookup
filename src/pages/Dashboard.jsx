@@ -29,7 +29,7 @@ const OwnerDashboard = () => {
   const fetchMyPgs = async () => {
 
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/pg/owner/${user.id}`);
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/v1/pg/owner/${user.id}`);
       const data = await res.json();
 
 
@@ -48,7 +48,7 @@ const OwnerDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/v1/user/logout", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/v1/user/logout`, {
         method: "GET",
         credentials: "include",
       });
@@ -66,7 +66,7 @@ const OwnerDashboard = () => {
 
   const handleDelete = async (pgId) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/pg/delete/${pgId}`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/v1/pg/delete/${pgId}`, {
         method: "DELETE",
       });
       if (res.ok) {
@@ -81,7 +81,7 @@ const OwnerDashboard = () => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/pg/edit/${editPgData._id}`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/v1/pg/edit/${editPgData._id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

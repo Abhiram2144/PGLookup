@@ -87,7 +87,7 @@ const AddPgForm = ({onPgAdded}) => {
   });
 
     try {
-      const res = axios.post("http://localhost:8000/api/v1/pg/new", formData, {
+      const res = axios.post(`${Meta.env.VITE_BACKEND_API}/api/v1/pg/new`, formData, {
   headers: { "Content-Type": "multipart/form-data" }});
       if ((await res).status === 200) {
         toast.success("PG added successfully!");

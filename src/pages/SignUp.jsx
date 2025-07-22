@@ -54,7 +54,7 @@ const Signup = () => {
 
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8000/api/v1/user/new", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/v1/user/new`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

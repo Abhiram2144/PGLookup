@@ -23,7 +23,7 @@ const PgDetail = () => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:8000/api/v1/pg/pg/${id}`)
+      .get(`${import.meta.env.VITE_BACKEND_API}/api/v1/pg/pg/${id}`)
       .then((res) => {
         setPg(res.data.pg);
       })
