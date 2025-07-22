@@ -60,7 +60,23 @@ const {
 const { checkAuth } = require("./middleware/authentication");
 
 app.use(express.json());
-app.use(cors({ origin: 'https://plup-beryl.vercel.app/', credentials: true }));
+
+const allowedOrigins = [
+  'https://plup-beryl.vercel.app', // your frontend
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (like Postman) or whitelisted origins
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed from this origin: ' + origin));
+    }
+  },
+  credentials: true, // if you're using cookies or auth headers
+}));
+
 
 // Server and DB
 app.listen(8000, () => {
