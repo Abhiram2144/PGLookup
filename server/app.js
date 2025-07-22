@@ -60,12 +60,12 @@ const {
 const { checkAuth } = require("./middleware/authentication");
 
 app.use(express.json());
-app.use(cors({ origin: '*', credentials: true }));
+app.use(cors({ origin: 'https://plup-beryl.vercel.app/', credentials: true }));
 
 // Server and DB
 app.listen(8000, () => {
   console.log("Server running on port 8000");
-  mongoose.connect(`mongodb+srv://abhiram:abhiram@cluster0.qar6awa.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`)
+  mongoose.connect(`mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@cluster0.qar6awa.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`)
     .then(() => console.log("Connected to database!"))
     .catch((err) => console.error("MongoDB connection error:", err));
 });
